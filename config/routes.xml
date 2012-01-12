@@ -1,0 +1,5 @@
+<routes>
+    <get path="articles/:year/:month/:uri-title">
+      <to>views/home.xview</to>
+    </get>
+</routes> 

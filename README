@@ -1,0 +1,1 @@
+The goal of xFire is to create a framework for xQuery similar in purpose to Rails, however remain true to functional principals. This means not trying to make xQuery fit Object-Oriented patterns such as MVC.
