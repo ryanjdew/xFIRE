@@ -52,12 +52,17 @@ declare function layout($layout-path as xs:string?) {
 };
 
 declare function layout() {
-	fn:concat(
-		(xdmp:get-session-field(fn:concat('layout-', $request-id)),$default-layout)[1],
-		'.',
-		type(),
-		'.xsl'
-	)
+	let $val := xdmp:get-session-field(fn:concat('layout-', $request-id))
+	return
+	if ($val eq 'none')
+	then $val
+	else
+		fn:concat(
+			(xdmp:get-session-field(fn:concat('layout-', $request-id)),$default-layout)[1],
+			'.',
+			type(),
+			'.xsl'
+		)
 };
 
 declare function clear-session-fields() as empty-sequence() {
@@ -85,6 +90,7 @@ declare function render-partial($target as xs:string, $transform-items as elemen
 declare function render-page($target as xs:string) as node()? {
 	let $request-fields := request-fields()
 	let $type := type()
+	let $set-response-type := xdmp:set-response-content-type(if ($type eq 'html') then 'text/html' else fn:concat('application/',$type))
 	let $query-xsl := fn:concat($target,'.query.xsl')
 	let $doc := document {
 				if (xdmp:uri-is-file($query-xsl)) 
@@ -95,13 +101,14 @@ declare function render-page($target as xs:string) as node()? {
 	return 
 		if (xdmp:uri-is-file($view-xsl))
 		then 
+			let $body := xdmp:xslt-invoke($view-xsl, $doc, $request-fields)
 			let $layout := layout()
 			return
 			if ($layout eq 'none')
-			then xdmp:xslt-invoke($view-xsl, $doc, $request-fields)
+			then $body
 			else
 			(
-				layout:content-body(xdmp:xslt-invoke($view-xsl, $doc, $request-fields)),
+				layout:content-body($body),
 				xdmp:xslt-invoke($layout, $empty-doc, $request-fields),
 				clear-session-fields()
 			)
