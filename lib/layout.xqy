@@ -88,6 +88,10 @@ declare function render-partial($target as xs:string, $transform-items as elemen
 };
 
 declare function render-page($target as xs:string) as node()? {
+	render-page($target, ())
+};
+
+declare function render-page($target as xs:string, $items as node()*) as node()? {
 	let $request-fields := request-fields()
 	let $type := type()
 	let $set-response-type := xdmp:set-response-content-type(if ($type eq 'html') then 'text/html' else fn:concat('application/',$type))
@@ -95,7 +99,8 @@ declare function render-page($target as xs:string) as node()? {
 	let $doc := document {
 				if (xdmp:uri-is-file($query-xsl)) 
 				then fn:doc(cts:uris('/', (), cts:query(xdmp:xslt-invoke($query-xsl, $empty-doc, $request-fields)/*)))/* 
-				else ()
+				else (),
+				$items
 				}
 	let $view-xsl := fn:concat($target,'.',$type,'.xsl')
 	return 
