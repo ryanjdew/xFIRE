@@ -11,13 +11,13 @@ else
 	let $route-path := if ($cached-path) then ($cached-path) else (xdmp:set-server-field('routeCfgPath',fn:concat(fn:replace(xdmp:modules-root(),'/$',''),'/config/routes.xml')))
 	let $routes-cfg := xdmp:document-get($route-path)/*
 	let $selected-route := r:selectedRoute($routes-cfg)
-	return if (fn:matches($selected-route, '\.xview')) 
+	return if (fn:matches($selected-route, '^/resource/views/')) 
 		then fn:concat('/lib/xview_bridge.xqy?xview-url=',
 							xdmp:url-encode(
 								fn:concat(
-									fn:replace($selected-route,'\.xview', ''), 
+									$selected-route, 
 									if (fn:contains($selected-route, '?')) then '&amp;' else '?', 
-									'orig-path=',if (fn:contains($orig-url, '?')) then fn:substring-before($orig-url, '?') else $orig-url 
+									'orig-path=',(fn:substring-before($orig-url, '?'),$orig-url)[1]
 								)
 							)
 						)
