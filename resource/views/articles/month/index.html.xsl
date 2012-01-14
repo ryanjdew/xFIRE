@@ -9,10 +9,10 @@
 	<xdmp:import-module href="/lib/layout.xqy" namespace="/xFire/layout"/>
 	<xdmp:import-module href="/lib/i18n.xqy" namespace="/xFire/i18n"/>
 	<xsl:param name="locale"/>
+	<xsl:param name="year"/>
+	<xsl:param name="month"/>
 	<xsl:template match="/">
-		<xsl:value-of select="xfire-layout:content-for('title', i18n:i18n-bundle-entry($locale, 'general', 'home-page-title'))" />
-		<div>
-			<xsl:copy-of select="i18n:i18n-bundle-entry($locale, 'general', 'home-page-body')" />
-		</div>
+		<xsl:value-of select="xfire-layout:content-for('title', concat(i18n:i18n-bundle-entry($locale, 'general', 'articles-page-title'),' ', $year, ' ', i18n:i18n-bundle-entry($locale, 'general', concat('month-',$month))))" />
+		<xsl:copy-of select="xfire-layout:render-partial('/resource/views/partials/article-stub', article)" />
 	</xsl:template>
 </xsl:stylesheet>

@@ -1,5 +1,17 @@
 <routes>
-    <get path="articles/:year/:month/:uri-title">
+	<get path="">
       <to>views/home</to>
+    </get>
+    <get path="articles/:year/:month/:uri-title">
+      <to>views/articles/article/index</to>
+    </get>
+    <get path="articles/:year/:month">
+      <to>views/articles/month/index</to>
+    </get>
+    <get path="articles/:year">
+      <to>views/articles/year/index</to>
+    </get>
+    <get path="articles">
+      <to>views/articles/index</to>
     </get>
 </routes> 
