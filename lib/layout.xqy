@@ -9,9 +9,14 @@ xquery version "1.0-ml" ;
  :
  :)
 
- module namespace layout = "/xFire/layout";
+module namespace layout = "/xFire/layout";
 
- declare namespace xsl = "http://www.w3.org/1999/XSL/Transform";
+import module namespace search = "http://marklogic.com/appservices/search"
+    at "/MarkLogic/appservices/search/search.xqy";
+
+declare namespace xsl = "http://www.w3.org/1999/XSL/Transform";
+declare namespace ml-search = "http://marklogic.com/appservices/search";
+declare namespace xfire-search = "/xFire/search";
 
 (: Use the yield-map to track session fields to clear at the end of a request :)
 declare variable $yield-map := map:map();
@@ -98,7 +103,15 @@ declare function render-page($target as xs:string, $items as node()*) as node()?
 	let $query-xsl := fn:concat($target,'.query.xsl')
 	let $doc := document {
 				if (xdmp:uri-is-file($query-xsl)) 
-				then fn:doc(cts:uris('/', (), cts:query(xdmp:xslt-invoke($query-xsl, $empty-doc, $request-fields)/*)))/* 
+				then 
+					let $query := xdmp:xslt-invoke($query-xsl, $empty-doc, $request-fields)/*
+					return 
+						typeswitch($query)
+						case element(*,cts:query) 
+							return fn:doc(cts:uris('/', (), cts:query($query)))/*
+						case element(xfire-search:search) 
+							return search:search(xs:string($query/xfire-search:query), $query/ml-search:options, xs:unsignedLong($query/xfire-search:start), xs:unsignedLong($query/xfire-search:page-length))
+						default return ()
 				else (),
 				$items
 				}
