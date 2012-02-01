@@ -1,8 +1,8 @@
 <xsl:stylesheet version="2.0"
 			xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 			xmlns:xdmp="http://marklogic.com/xdmp">
-	<xsl:param name="locale"/>
-	<xsl:param name="year"/>
+	<xsl:param name="locale" select="'eng'"/>
+	<xsl:param name="year" select="string(year-from-date(current-date()))"/>
 	<xsl:template match="/">
 		<cts:element-query xmlns:cts="http://marklogic.com/cts">
 			<cts:element>article</cts:element>

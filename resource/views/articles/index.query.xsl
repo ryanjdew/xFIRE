@@ -1,7 +1,7 @@
 <xsl:stylesheet version="2.0"
 			xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 			xmlns:xdmp="http://marklogic.com/xdmp">
-	<xsl:param name="locale"/>
+	<xsl:param name="locale" select="'eng'"/>
 	<xsl:template match="/">
 		<cts:element-query xmlns:cts="http://marklogic.com/cts">
 			<cts:element>article</cts:element>

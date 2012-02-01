@@ -18,52 +18,52 @@ declare namespace xsl = "http://www.w3.org/1999/XSL/Transform";
 declare namespace ml-search = "http://marklogic.com/appservices/search";
 declare namespace xfire-search = "/xFire/search";
 
-(: Use the yield-map to track session fields to clear at the end of a request :)
-declare variable $yield-map := map:map();
 (: default layout for the application :)
 declare variable $default-layout := '/resource/views/layouts/application';
 declare variable $empty-doc := document {()};
 declare variable $request-id := xdmp:request();
 
+declare variable $yield-file-location := fn:concat('/request/',$request-id,'.xml');
+(: Use the yield-map to track session fields to clear at the end of a request :)
+declare variable $yield-map := map:map();
+
 
 declare function content-for($area as xs:string, $content as item()*) {
-	(: use the request id to avoid potential collisons:)
-	let $key := fn:concat($area, '-', $request-id)
-	let $_ := (map:put($yield-map, $key, ()),
-			   xdmp:set-session-field($key, (xdmp:get-session-field($key),$content)))
-	return ()
+	map:put($yield-map,$area, (map:get($yield-map,$area),$content))
+};
+
+declare function yield-map($ym as map:map) {
+	xdmp:set($yield-map,$ym)
+};
+
+declare function yield-map() {
+	$yield-map
 };
 
 declare function yield($area as xs:string) {
-	xdmp:get-session-field(fn:concat($area, '-', $request-id))
+	map:get($yield-map,$area)
 };
 
 declare function content-body($content as item()*) {
-	let $key := fn:concat('page-content-body-', $request-id)
-	let $_ := (map:put($yield-map, $key, ()),
-				xdmp:set-session-field($key, $content))
-	return ()
+	map:put($yield-map,'page-content-body', $content)
 };
 
 declare function yield() {
-	xdmp:get-session-field(fn:concat('page-content-body-', xdmp:request()))
+	map:get($yield-map,'page-content-body')
 };
 
 declare function layout($layout-path as xs:string?) {
-	let $key := fn:concat('layout-', $request-id)
-	let $_ := (map:put($yield-map, $key, ()),
-				xdmp:set-session-field($key, $layout-path))
-	return ()
+	map:put($yield-map, 'layout', $layout-path)
 };
 
 declare function layout() {
-	let $val := xdmp:get-session-field(fn:concat('layout-', $request-id))
+	let $val := map:get($yield-map, 'layout') 
 	return
 	if ($val eq 'none')
 	then $val
 	else
 		fn:concat(
-			(xdmp:get-session-field(fn:concat('layout-', $request-id)),$default-layout)[1],
+			($val,$default-layout)[1],
 			'.',
 			type(),
 			'.xsl'
@@ -71,17 +71,14 @@ declare function layout() {
 };
 
 declare function clear-session-fields() as empty-sequence() {
-	for $k in map:keys($yield-map)
-	return xdmp:set-session-field($k, ())
+	xdmp:spawn('/lib/delete-request.xqy', (xs:QName('request-id'),$request-id))
 };
 
 declare function type() as xs:string {
-	let $key := fn:concat('render-type-', $request-id)
-	let $cached-type := xdmp:get-session-field($key)
+	let $cached-type := map:get($yield-map, 'render-type')
 	return if (fn:exists($cached-type))
 			then $cached-type
-			else (map:put($yield-map, $key, ()),
-					xdmp:set-session-field($key, 'html'))
+			else (map:put($yield-map, 'render-type', 'html'),'html')
 };
 
 declare function render-partial($target as xs:string) as node()? {
@@ -89,6 +86,13 @@ declare function render-partial($target as xs:string) as node()? {
 };
 
 declare function render-partial($target as xs:string, $transform-items as element()*) as node()? {
+	xdmp:eval('xquery version "1.0-ml";
+	declare variable $request-id as xs:unsignedLong external;
+	declare variable $yield-map as map:map external;
+	declare variable $yield-file-location := fn:concat("/request/",$request-id,".xml");
+
+	xdmp:document-insert($yield-file-location,element e {$yield-map}/*,xdmp:default-permissions(), 
+	         xdmp:default-collections())',(xs:QName('yield-map'),$yield-map,xs:QName('request-id'),$request-id)),
 	xdmp:xslt-invoke(fn:concat($target,'.',type(),'.xsl'), document {$transform-items}, request-fields())
 };
 
@@ -134,12 +138,9 @@ declare function render-page($target as xs:string, $items as node()*) as node()?
 };
 
 declare function request-fields() as map:map? {
-	xdmp:get-session-field(fn:concat('request-fields',$request-id))
+	map:get($yield-map,'request-fields')
 };
 
 declare function request-fields($request-fields as map:map?) as map:map? {
-	let $key := fn:concat('request-fields',$request-id)
-	return
-	(map:put($yield-map, $key, ()),
-	xdmp:set-session-field(fn:concat('request-fields',$request-id),$request-fields))
+	map:put($yield-map, 'request-fields', $request-fields)
 };
