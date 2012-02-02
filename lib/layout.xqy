@@ -26,6 +26,7 @@ declare variable $request-id := xdmp:request();
 declare variable $yield-file-location := fn:concat('/request/',$request-id,'.xml');
 (: Use the yield-map to track session fields to clear at the end of a request :)
 declare variable $yield-map := map:map();
+declare variable $request-fields := map:map();
 
 
 declare function content-for($area as xs:string, $content as item()*) {
@@ -70,15 +71,16 @@ declare function layout() {
 		)
 };
 
-declare function clear-session-fields() as empty-sequence() {
-	xdmp:spawn('/lib/delete-request.xqy', (xs:QName('request-id'),$request-id))
-};
-
 declare function type() as xs:string {
 	let $cached-type := map:get($yield-map, 'render-type')
 	return if (fn:exists($cached-type))
 			then $cached-type
-			else (map:put($yield-map, 'render-type', 'html'),'html')
+			else 
+				let $accept-header := xdmp:get-request-header('Accept')[1]
+				let $type := if (fn:matches($accept-header, '^[^/]+/([^,;]+)(,|;|$)'))
+							then fn:substring-after(fn:tokenize(fn:tokenize($accept-header, ';')[1], ',')[1],'/')
+							else 'html'
+				return (map:put($yield-map, 'render-type', $type),$type)
 };
 
 declare function render-partial($target as xs:string) as node()? {
@@ -86,13 +88,6 @@ declare function render-partial($target as xs:string) as node()? {
 };
 
 declare function render-partial($target as xs:string, $transform-items as element()*) as node()? {
-	xdmp:eval('xquery version "1.0-ml";
-	declare variable $request-id as xs:unsignedLong external;
-	declare variable $yield-map as map:map external;
-	declare variable $yield-file-location := fn:concat("/request/",$request-id,".xml");
-
-	xdmp:document-insert($yield-file-location,element e {$yield-map}/*,xdmp:default-permissions(), 
-	         xdmp:default-collections())',(xs:QName('yield-map'),$yield-map,xs:QName('request-id'),$request-id)),
 	xdmp:xslt-invoke(fn:concat($target,'.',type(),'.xsl'), document {$transform-items}, request-fields())
 };
 
@@ -105,25 +100,30 @@ declare function render-page($target as xs:string, $items as node()*) as node()?
 	let $type := type()
 	let $set-response-type := xdmp:set-response-content-type(if ($type eq 'html') then 'text/html' else fn:concat('application/',$type))
 	let $query-xsl := fn:concat($target,'.query.xsl')
-	let $doc := document {
-				if (xdmp:uri-is-file($query-xsl)) 
-				then 
-					let $query := xdmp:xslt-invoke($query-xsl, $empty-doc, $request-fields)/*
-					return 
-						typeswitch($query)
-						case element(*,cts:query) 
-							return fn:doc(cts:uris('/', (), cts:query($query)))/*
-						case element(xfire-search:search) 
-							return search:search(xs:string($query/xfire-search:query), $query/ml-search:options, xs:unsignedLong($query/xfire-search:start), xs:unsignedLong($query/xfire-search:page-length))
-						default return ()
-				else (),
-				$items
-				}
 	let $view-xsl := fn:concat($target,'.',$type,'.xsl')
 	return 
 		if (xdmp:uri-is-file($view-xsl))
 		then 
-			let $body := xdmp:xslt-invoke($view-xsl, $doc, $request-fields)
+			let $body := render-partial($target, (if (xdmp:uri-is-file($query-xsl)) 
+													then 
+														let $query := xdmp:xslt-invoke($query-xsl, $empty-doc, $request-fields)/*
+														return 
+															typeswitch($query)
+															case element(*,cts:query) 
+																return fn:doc(cts:uris('/', (), cts:query($query)))/*
+															case element(xfire-search:search) 
+																return 
+																	search:search( 
+																		xs:string($query/xfire-search:query), 
+																		$query/ml-search:options, 
+																		xs:unsignedLong($query/xfire-search:start), 
+																		xs:unsignedLong( 	
+																			$query/xfire-search:page-length
+																		)
+																	)
+															default return ()
+													else (),
+													$items))
 			let $layout := layout()
 			return
 			if ($layout eq 'none')
@@ -131,16 +131,16 @@ declare function render-page($target as xs:string, $items as node()*) as node()?
 			else
 			(
 				layout:content-body($body),
-				xdmp:xslt-invoke($layout, $empty-doc, $request-fields),
-				clear-session-fields()
+				xdmp:xslt-invoke($layout, $empty-doc, request-fields())
 			)
 		else xdmp:redirect-response('/errror.xqy?reason=404')
 };
 
 declare function request-fields() as map:map? {
-	map:get($yield-map,'request-fields')
+	let $_ := map:put($request-fields, 'yield-map',$yield-map)
+	return $request-fields
 };
 
-declare function request-fields($request-fields as map:map?) as map:map? {
-	map:put($yield-map, 'request-fields', $request-fields)
+declare function request-fields($rfs as map:map?) as map:map? {
+	xdmp:set($request-fields, $rfs)
 };
