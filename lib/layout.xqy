@@ -21,9 +21,7 @@ declare namespace xfire-search = "/xFire/search";
 (: default layout for the application :)
 declare variable $default-layout := '/resource/views/layouts/application';
 declare variable $empty-doc := document {()};
-declare variable $request-id := xdmp:request();
 
-declare variable $yield-file-location := fn:concat('/request/',$request-id,'.xml');
 (: Use the yield-map to track session fields to clear at the end of a request :)
 declare variable $yield-map := map:map();
 declare variable $request-fields := map:map();
@@ -53,7 +51,7 @@ declare function yield() {
 	map:get($yield-map,'page-content-body')
 };
 
-declare function layout($layout-path as xs:string?) {
+declare function layout($layout-path as xs:string) {
 	map:put($yield-map, 'layout', $layout-path)
 };
 
@@ -96,17 +94,16 @@ declare function render-page($target as xs:string) as node()? {
 };
 
 declare function render-page($target as xs:string, $items as node()*) as node()? {
-	let $request-fields := request-fields()
 	let $type := type()
-	let $set-response-type := xdmp:set-response-content-type(if ($type eq 'html') then 'text/html' else fn:concat('application/',$type))
 	let $query-xsl := fn:concat($target,'.query.xsl')
 	let $view-xsl := fn:concat($target,'.',$type,'.xsl')
-	return 
+	return (
+		xdmp:set-response-content-type(if ($type eq 'html') then 'text/html' else fn:concat('application/',$type)),
 		if (xdmp:uri-is-file($view-xsl))
 		then 
 			let $body := render-partial($target, (if (xdmp:uri-is-file($query-xsl)) 
 													then 
-														let $query := xdmp:xslt-invoke($query-xsl, $empty-doc, $request-fields)/*
+														let $query := xdmp:xslt-invoke($query-xsl, $empty-doc, request-fields())/*
 														return 
 															typeswitch($query)
 															case element(*,cts:query) 
@@ -133,14 +130,22 @@ declare function render-page($target as xs:string, $items as node()*) as node()?
 				layout:content-body($body),
 				xdmp:xslt-invoke($layout, $empty-doc, request-fields())
 			)
-		else xdmp:redirect-response('/errror.xqy?reason=404')
+		else if ($target ne '/resource/views/error') 
+		then 
+			render-page('/resource/views/error', element response {
+				element code {"404"},
+				element message {"Not Found"}
+			})
+		else ()
+	)
 };
 
 declare function request-fields() as map:map? {
-	let $_ := map:put($request-fields, 'yield-map',$yield-map)
+	let $_ := (map:put($request-fields, 'yield-map',$yield-map),
+				if (map:get($request-fields,'xfire-request-fields-initialzed') eq 'true') 
+				then ()
+				else (xdmp:get-request-field-names()[map:put($request-fields, .,xdmp:get-request-field(.))],
+					map:put($request-fields, 'xfire-request-fields-initialzed', 'true'))
+				)
 	return $request-fields
-};
-
-declare function request-fields($rfs as map:map?) as map:map? {
-	xdmp:set($request-fields, $rfs)
 };

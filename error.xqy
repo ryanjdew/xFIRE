@@ -6,22 +6,24 @@ declare namespace error = "http://marklogic.com/xdmp/error";
 
 declare variable $error:errors as element(error:error)* external;
 
-let $results := (
+declare function local:build-response($code as xs:integer, $message as xs:string) {
+	element response {
+		element code {
+			$code
+		},
+		element message {
+			$message
+		}
+	}
+}
+
+let $results := 
 					try {
 						if (fn:exists($error:errors))
-						then xdmp:set-response-code(500,"Internal Server Error")
-						else xdmp:set-response-code(404,"Not Found")
+						then local:build-response(500,"Internal Server Error")
+						else local:build-response(404,"Not Found")
 					} catch ($e) {
-						xdmp:set-response-code(404,"Not Found")
-					},
-					let $errorResponseCode := xdmp:get-response-code()
-					return element response {
-							element code {
-							$errorResponseCode[1]
-							},
-							element message {
-							$errorResponseCode[2]
-							}
+						local:build-response(404,"Not Found")
 					}
-				)
+
 return layout:render-page('/resource/views/error',$results)
