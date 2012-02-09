@@ -75,10 +75,14 @@ declare function type() as xs:string {
 			then $cached-type
 			else 
 				let $accept-header := xdmp:get-request-header('Accept')[1]
-				let $type := if (fn:matches($accept-header, '^[^/]+/([^,;]+)(,|;|$)'))
-							then fn:substring-after(fn:tokenize(fn:tokenize($accept-header, ';')[1], ',')[1],'/')
-							else 'html'
+				let $type := determine-format(xdmp:get-request-header('Accept')[1])
 				return (map:put($yield-map, 'render-type', $type),$type)
+};
+
+declare function determine-format($accept-header as xs:string) as xs:string {
+	if (fn:matches($accept-header, '^[^/]+/([^,;]+)(,|;|$)'))
+	then fn:substring-after(fn:tokenize(fn:tokenize($accept-header, ';')[1], ',')[1],'/')
+	else 'html'
 };
 
 declare function render-partial($target as xs:string) as node()? {
@@ -94,7 +98,10 @@ declare function render-page($target as xs:string) as node()? {
 };
 
 declare function render-page($target as xs:string, $items as node()*) as node()? {
-	let $type := type()
+	render-page($target, $items, type()) 
+};
+
+declare function render-page($target as xs:string, $items as node()*, $type as xs:string) as node()? {
 	let $query-xsl := fn:concat($target,'.query.xsl')
 	let $view-xsl := fn:concat($target,'.',$type,'.xsl')
 	return (

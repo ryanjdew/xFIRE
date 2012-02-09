@@ -9,7 +9,7 @@
 	<xsl:param name="yield-map"/>
 	<xsl:template match="/response">
 		<xsl:value-of select="layout:yield-map($yield-map)" />
-		<xsl:value-of select="xdmp:set-response-code(number(code),string(message))" />
+		<xsl:value-of select="xdmp:set-response-code(xs:integer(code),string(message))" />
 		<xsl:value-of select="layout:content-for('title', code/node())" />
 		<div>
 			<xsl:copy-of select="message/node()" />

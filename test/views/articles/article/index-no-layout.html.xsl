@@ -9,6 +9,7 @@
 	<xsl:param name="yield-map" />
 	<xsl:template match="/article">
 		<xsl:value-of select="layout:yield-map($yield-map)" />
+		<xsl:value-of select="layout:layout('none')" />
 		<xsl:value-of select="layout:content-for('title', title/node())" />
 		<div>
 			<xsl:copy-of select="body/node()" />
