@@ -148,10 +148,11 @@ declare function render-page($target as xs:string, $items as node()*, $type as x
 };
 
 declare function request-fields() as map:map? {
-	let $_ := (map:put($request-fields, 'yield-map',$yield-map),
+	let $_ := (
 				if (map:get($request-fields,'xfire-request-fields-initialzed') eq 'true') 
 				then ()
-				else (xdmp:get-request-field-names()[map:put($request-fields, .,xdmp:get-request-field(.))],
+				else (map:put($request-fields, 'yield-map',$yield-map),
+					xdmp:get-request-field-names()[map:put($request-fields, .,xdmp:get-request-field(.))],
 					map:put($request-fields, 'xfire-request-fields-initialzed', 'true'))
 				)
 	return $request-fields
