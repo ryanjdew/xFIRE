@@ -15,7 +15,7 @@ declare function local:build-response($code as xs:integer, $message as xs:string
 			$message
 		}
 	}
-}
+};
 
 let $results := 
 					try {
