@@ -1,5 +1,5 @@
-<options xmlns="http://marklogic.com/appservices/rest" user-params="allow">
-	<request uri="/" endpoint="/resource/views/home" >
+<options xmlns="http://marklogic.com/appservices/rest">
+	<request uri="^/$" endpoint="/resource/views/home" >
 		<http method="GET"/>
 	</request>
 </options>
