@@ -108,7 +108,7 @@ declare function render-page($target as xs:string, $items as node()*, $type as x
 		xdmp:set-response-content-type(if ($type eq 'html') then 'text/html' else fn:concat('application/',$type)),
 		if (xdmp:uri-is-file($view-xsl))
 		then 
-			let $body := xdmp:xslt-invoke('/lib/xview_transform.xsl',render-partial($target, (if (xdmp:uri-is-file($query-xsl)) 
+			let $body := render-partial($target, (if (xdmp:uri-is-file($query-xsl)) 
 													then 
 														let $query := xdmp:xslt-invoke($query-xsl, $empty-doc, request-fields())/*
 														return 
@@ -127,7 +127,7 @@ declare function render-page($target as xs:string, $items as node()*, $type as x
 																	)
 															default return ()
 													else (),
-													$items)), request-fields())
+													$items))
 			let $layout := layout()
 			return
 			if ($layout eq 'none')
@@ -135,7 +135,7 @@ declare function render-page($target as xs:string, $items as node()*, $type as x
 			else
 			(
 				layout:content-body($body),
-				xdmp:xslt-invoke('/lib/xview_transform.xsl',xdmp:xslt-invoke($layout, $empty-doc, request-fields()),request-fields())
+				xdmp:xslt-invoke($layout, $empty-doc, request-fields())
 			)
 		else if ($target ne '/resource/views/error') 
 		then 

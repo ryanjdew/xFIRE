@@ -5,13 +5,18 @@
 			xmlns:layout="/xFire/layout"
 			exclude-result-prefixes="xs xdmp"
 			extension-element-prefixes="xdmp">
+	<xsl:include href="/lib/xview_transform.xsl"/>
 	<xsl:template match="/article">
-		<layout:layout path='/test/views/layouts/application' />
-		<layout:content-for area="title">
-			<xsl:copy-of select="title/node()" />
-		</layout:content-for>
-		<div>
-			<xsl:copy-of select="body/node()" />
-		</div>
+		<xsl:call-template name="xfire">
+			<xsl:with-param name="content">
+				<layout:layout path='/test/views/layouts/application' />
+				<layout:content-for area="title">
+					<xsl:copy-of select="title/node()" />
+				</layout:content-for>
+				<div>
+					<xsl:copy-of select="body/node()" />
+				</div>
+			</xsl:with-param>
+		</xsl:call-template>
 	</xsl:template>
 </xsl:stylesheet>

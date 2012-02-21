@@ -8,17 +8,21 @@
 	<xsl:output method="html" />
 	<xdmp:import-module href="/lib/layout.xqy" namespace="/xFire/layout"/>
 	<xsl:param name="yield-map"/>
-	<xsl:template match="/">
-		<xsl:value-of select="layout:yield-map($yield-map)" />
-		<html>
-			<head>
-				<title>
-					<xsl:copy-of select="layout:yield('title')" />
-				</title>
-			</head>
-			<body>
-				<xsl:copy-of select="layout:yield()" />
-			</body>
-		</html>
-	</xsl:template>
+	<xsl:call-template name="xfire">
+		<xsl:with-param name="content">
+			<xsl:template match="/">
+				<xsl:value-of select="layout:yield-map($yield-map)" />
+				<html>
+					<head>
+						<title>
+							<xsl:copy-of select="layout:yield('title')" />
+						</title>
+					</head>
+					<body>
+						<xsl:copy-of select="layout:yield()" />
+					</body>
+				</html>
+			</xsl:template>
+		</xsl:with-param>
+	</xsl:call-template>
 </xsl:stylesheet>

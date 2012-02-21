@@ -9,13 +9,14 @@
 	<xdmp:import-module href="/lib/layout.xqy" namespace="/xFire/layout"/>
 	<xdmp:import-module href="/lib/i18n.xqy" namespace="/xFire/i18n"/>
 	<xsl:param name="yield-map" />
-	<xsl:template match="/">
+	<xsl:template name="xfire">
+		<xsl:param name="content"/>
 		<xsl:value-of select="layout:yield-map($yield-map)" />
-		<xsl:value-of select="//layout:content-for/(layout:content-for(string(./@area), ./node()))" />
-		<xsl:apply-templates select='./node()' />
+		<xsl:value-of select="$content//layout:content-for/(layout:content-for(string(./@area), ./node()))" />
+		<xsl:apply-templates select='$content/node()' />
 	</xsl:template>
 	<xsl:template match="layout:layout">
-			<xsl:value-of select="layout:yield(string(./@path))" />
+		<xsl:value-of select="layout:layout(string(./@path))" />
 		<xsl:apply-templates />
 	</xsl:template>
 	<xsl:template match="layout:content-for">
@@ -32,11 +33,9 @@
 		<xsl:apply-templates />
 	</xsl:template>
 	<xsl:template match="*">
-		<xsl:element name="{name(.)}">
-			<xsl:apply-templates select="./node()" />
-		</xsl:element>		
-	</xsl:template>	
-	<xsl:template match="@*">
-		<xsl:copy-of select="." />		
+		<xsl:copy>
+			<xsl:copy-of select="@*"/>
+			<xsl:apply-templates/>
+		</xsl:copy>	
 	</xsl:template>	
 </xsl:stylesheet>
