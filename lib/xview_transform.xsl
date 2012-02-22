@@ -24,10 +24,10 @@
 	<xsl:template match="layout:yield">
 		<xsl:choose>
 			<xsl:when test="exists(./@area)">
-				<xsl:value-of select="layout:yield(string(./@area))" />
+				<xsl:copy-of select="layout:yield(string(./@area))" />
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:value-of select="layout:yield()" />
+				<xsl:copy-of select="layout:yield()" />
 			</xsl:otherwise>
 		</xsl:choose>
 		<xsl:apply-templates />

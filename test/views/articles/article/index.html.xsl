@@ -3,7 +3,7 @@
 			xmlns:xdmp="http://marklogic.com/xdmp"
 			xmlns:xs="http://www.w3.org/2001/XMLSchema"
 			xmlns:layout="/xFire/layout"
-			exclude-result-prefixes="xs xdmp"
+			exclude-result-prefixes="xs xdmp layout"
 			extension-element-prefixes="xdmp">
 	<xsl:include href="/lib/xview_transform.xsl"/>
 	<xsl:template match="/article">
