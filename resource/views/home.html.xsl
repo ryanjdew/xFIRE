@@ -5,16 +5,20 @@
 			xmlns:layout="/xFire/layout"
 			xmlns:i18n="/xFire/i18n"
 			exclude-result-prefixes="xs xdmp layout i18n"
-			extension-element-prefixes="xdmp layout">
-	<xdmp:import-module href="/lib/layout.xqy" namespace="/xFire/layout"/>
+			extension-element-prefixes="xdmp">
+	<xsl:include href="/lib/xview_transform.xsl"/>
 	<xdmp:import-module href="/lib/i18n.xqy" namespace="/xFire/i18n"/>
 	<xsl:param name="locale" select="'eng'"/>
-	<xsl:param name="yield-map" />
 	<xsl:template match="/">
-		<xsl:value-of select="layout:yield-map($yield-map)" />
-		<xsl:value-of select="layout:content-for('title', i18n:i18n-bundle-entry($locale, 'general', 'home-page-title'))" />
-		<div>
-			<xsl:copy-of select="i18n:i18n-bundle-entry($locale, 'general', 'home-page-body')" />
-		</div>
+		<xsl:call-template name="xfire">
+			<xsl:with-param name="content">
+				<layout:content-for area='title'>
+					<xsl:value-of select="i18n:i18n-bundle-entry($locale, 'general', 'home-page-title')" />
+				</layout:content-for>
+				<div>
+					<xsl:copy-of select="i18n:i18n-bundle-entry($locale, 'general', 'home-page-body')" />
+				</div>
+			</xsl:with-param>
+		</xsl:call-template>
 	</xsl:template>
 </xsl:stylesheet>

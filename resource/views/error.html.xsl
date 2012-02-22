@@ -4,15 +4,19 @@
 			xmlns:xs="http://www.w3.org/2001/XMLSchema"
 			xmlns:layout="/xFire/layout"
 			exclude-result-prefixes="xs xdmp layout"
-			extension-element-prefixes="xdmp layout">
-	<xdmp:import-module href="/lib/layout.xqy" namespace="/xFire/layout"/>
-	<xsl:param name="yield-map"/>
+			extension-element-prefixes="xdmp">
+	<xsl:include href="/lib/xview_transform.xsl"/>
 	<xsl:template match="/response">
-		<xsl:value-of select="layout:yield-map($yield-map)" />
-		<xsl:value-of select="xdmp:set-response-code(xs:integer(code),string(message))" />
-		<xsl:value-of select="layout:content-for('title', code/node())" />
-		<div>
-			<xsl:copy-of select="message/node()" />
-		</div>
+		<xsl:call-template name="xfire">
+			<xsl:with-param name="content">
+				<xsl:value-of select="xdmp:set-response-code(xs:integer(code),string(message))" />
+				<layout:content-for area='title'>
+					<xsl:copy-of select="code/node()" />
+				</layout:content-for>
+				<div>
+					<xsl:copy-of select="message/node()" />
+				</div>
+			</xsl:with-param>
+		</xsl:call-template>
 	</xsl:template>
 </xsl:stylesheet>

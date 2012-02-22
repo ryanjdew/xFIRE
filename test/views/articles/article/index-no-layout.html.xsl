@@ -4,15 +4,20 @@
 			xmlns:xs="http://www.w3.org/2001/XMLSchema"
 			xmlns:layout="/xFire/layout"
 			exclude-result-prefixes="xs xdmp layout"
-			extension-element-prefixes="xdmp layout">
+			extension-element-prefixes="xdmp">
+	<xsl:include href="/lib/xview_transform.xsl"/>
 	<xdmp:import-module href="/lib/layout.xqy" namespace="/xFire/layout"/>
-	<xsl:param name="yield-map" />
 	<xsl:template match="/article">
-		<xsl:value-of select="layout:yield-map($yield-map)" />
-		<xsl:value-of select="layout:layout('none')" />
-		<xsl:value-of select="layout:content-for('title', title/node())" />
-		<div>
-			<xsl:copy-of select="body/node()" />
-		</div>
+		<xsl:call-template name="xfire">
+			<xsl:with-param name="content">
+				<layout:layout path='none' />
+				<layout:content-for area='title'>
+					<xsl:copy-of select="title/node()" />
+				</layout:content-for>
+				<div>
+					<xsl:copy-of select="body/node()" />
+				</div>
+			</xsl:with-param>
+		</xsl:call-template>
 	</xsl:template>
 </xsl:stylesheet>

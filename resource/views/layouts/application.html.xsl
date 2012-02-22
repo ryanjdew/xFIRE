@@ -1,28 +1,25 @@
 <xsl:stylesheet version="2.0"
-		xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-		xmlns:xdmp="http://marklogic.com/xdmp"
-		xmlns:xs="http://www.w3.org/2001/XMLSchema"
-		xmlns:layout="/xFire/layout"
-		exclude-result-prefixes="xs xdmp layout"
-		extension-element-prefixes="xdmp layout">
-	<xsl:output method="html" />
-	<xdmp:import-module href="/lib/layout.xqy" namespace="/xFire/layout"/>
-	<xsl:param name="yield-map"/>
-	<xsl:call-template name="xfire">
-		<xsl:with-param name="content">
-			<xsl:template match="/">
-				<xsl:value-of select="layout:yield-map($yield-map)" />
+			xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+			xmlns:xdmp="http://marklogic.com/xdmp"
+			xmlns:xs="http://www.w3.org/2001/XMLSchema"
+			xmlns:layout="/xFire/layout"
+			exclude-result-prefixes="xs xdmp layout"
+			extension-element-prefixes="xdmp">
+	<xsl:include href="/lib/xview_transform.xsl"/>
+	<xsl:template match="/">
+		<xsl:call-template name="xfire">
+			<xsl:with-param name="content">
 				<html>
 					<head>
 						<title>
-							<xsl:copy-of select="layout:yield('title')" />
+							<layout:yield area="title" />
 						</title>
 					</head>
 					<body>
-						<xsl:copy-of select="layout:yield()" />
+						<layout:yield />
 					</body>
 				</html>
-			</xsl:template>
-		</xsl:with-param>
-	</xsl:call-template>
+			</xsl:with-param>
+		</xsl:call-template>
+	</xsl:template>
 </xsl:stylesheet>
