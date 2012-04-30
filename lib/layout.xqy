@@ -31,6 +31,10 @@ declare function content-for($area as xs:string, $content as item()*) {
 	map:put($yield-map,$area, (map:get($yield-map,$area),$content))
 };
 
+declare function content-exists-for($area as xs:string) {
+	fn:exists(map:get($yield-map,$area))
+};
+
 declare function yield-map($ym as map:map) {
 	xdmp:set($yield-map,$ym)
 };

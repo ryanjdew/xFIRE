@@ -5,7 +5,8 @@
 			xmlns:layout="/xFire/layout"
 			xmlns:i18n="/xFire/i18n"
 			exclude-result-prefixes="xs xdmp layout i18n"
-			extension-element-prefixes="xdmp layout">
+			extension-element-prefixes="xdmp layout"
+			input-type-annotations = "strip">
 	<xdmp:import-module href="/lib/layout.xqy" namespace="/xFire/layout"/>
 	<xdmp:import-module href="/lib/i18n.xqy" namespace="/xFire/i18n"/>
 	<xsl:param name="yield-map" />
@@ -21,10 +22,15 @@
 	</xsl:template>
 	<xsl:template match="layout:content-for">
 	</xsl:template>
+	<xsl:template match="layout:content-exists-for">
+		<xsl:if test="layout:content-exists-for(string(./@area))">
+			<xsl:apply-templates select="./node()" />
+		</xsl:if>
+	</xsl:template>
 	<xsl:template match="layout:yield">
 		<xsl:choose>
 			<xsl:when test="exists(./@area)">
-				<xsl:copy-of select="layout:yield(string(./@area))" />
+				<xsl:apply-templates select="layout:yield(string(./@area))" />
 			</xsl:when>
 			<xsl:otherwise>
 				<xsl:copy-of select="layout:yield()" />
@@ -33,9 +39,11 @@
 		<xsl:apply-templates />
 	</xsl:template>
 	<xsl:template match="*">
-		<xsl:copy>
-			<xsl:copy-of select="@*"/>
+		<xsl:element name="{node-name(.)}">
 			<xsl:apply-templates/>
-		</xsl:copy>	
+		</xsl:element>	
+	</xsl:template>	
+	<xsl:template match="@*">
+		<xsl:copy />
 	</xsl:template>	
 </xsl:stylesheet>
