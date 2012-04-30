@@ -1,4 +1,4 @@
-<xsl:stylesheet version="2.0"
+<xsl:stylesheet version="2.0" 
 			xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 			xmlns:xdmp="http://marklogic.com/xdmp"
 			xmlns:xs="http://www.w3.org/2001/XMLSchema"
@@ -6,25 +6,23 @@
 			exclude-result-prefixes="xs xdmp layout"
 			extension-element-prefixes="xdmp">
 	<xsl:include href="/lib/xview_transform.xsl"/>
-	<xsl:output method="html"/>
-	<xsl:template match="/">
+	<xsl:template match="/article">
 		<xsl:call-template name="xfire">
 			<xsl:with-param name="content">
-				<html>
-					<head>
-						<title>
-							<layout:yield area="title" />
-						</title>
-					</head>
-					<body>
-						<layout:yield />
-						<layout:content-exists-for area="right-sash">
-							<div class="right-sash">
-								<layout:yield area="right-sash"/>
-							</div>
-						</layout:content-exists-for>
-					</body>
-				</html>
+				<layout:layout path='/test/views/layouts/application' />
+				<layout:content-for area="title">
+					<xsl:copy-of select="title/node()" />
+				</layout:content-for>
+				<layout:content-for area="right-sash">
+					<nav>
+						<ul>
+							<li><a href="#">My Link</a></li>
+						</ul>
+					</nav>
+				</layout:content-for>
+				<div>
+					<xsl:copy-of select="body/node()" />
+				</div>
 			</xsl:with-param>
 		</xsl:call-template>
 	</xsl:template>
