@@ -9,9 +9,9 @@ let $routes-cfg := xdmp:document-get($route-path)/*
 let $selected-route := rest:rewrite($routes-cfg,$orig-url)
 return
  	(: If the selected route is a view then pass it to our special xqy page :)
-	if (fn:matches($selected-route, '^/resource/views/')) 
+	if (fn:matches($selected-route, '^([\w\d_\-]+)(/([\w\d_\-]+))*#([\w\d_\-]+)')) 
 	then fn:concat('/lib/xview_bridge.xqy?xview-url=',
-						fn:replace($selected-route, '\?', '&amp;'), 
+						xdmp:url-encode(fn:replace($selected-route, '\?', '&amp;')), 
 						'&amp;orig-path=',xdmp:url-encode((fn:substring-before($orig-url, '?'),$orig-url)[1])
 					)
 	(: Else just pass the selected route on as normal :)
