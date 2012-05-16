@@ -11,8 +11,7 @@ return
  	(: If the selected route is a view then pass it to our special xqy page :)
 	if (fn:matches($selected-route, '^([\w\d_\-]+)(/([\w\d_\-]+))*#([\w\d_\-]+)')) 
 	then fn:concat('/lib/xview_bridge.xqy?xview-url=',
-						xdmp:url-encode(fn:replace($selected-route, '\?', '&amp;')), 
-						'&amp;orig-path=',xdmp:url-encode((fn:substring-before($orig-url, '?'),$orig-url)[1])
+						fn:replace(fn:replace($selected-route,'#','%23'), '\?', '&amp;')
 					)
 	(: Else just pass the selected route on as normal :)
 	else if (fn:empty($selected-route))
