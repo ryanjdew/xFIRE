@@ -24,11 +24,15 @@ declare variable $empty-doc := document {()};
 
 (: Use the yield-map to track session fields to clear at the end of a request :)
 declare variable $yield-map := map:map();
-declare variable $params-map := map:map();
+declare variable $params-map := map:map()[map:put(.,'yield-map',$yield-map),fn:true()];
 
 
 declare function content-for($area as xs:string, $content as item()*) {
 	map:put($yield-map,$area, (map:get($yield-map,$area),$content))
+};
+
+declare function content-exists-for($area as xs:string) {
+	fn:exists(map:get($yield-map,$area))
 };
 
 declare function yield-map($ym as map:map) {
@@ -85,14 +89,14 @@ declare function determine-format($accept-header as xs:string) as xs:string {
 	else 'html'
 };
 
-declare function render-partial($target as xs:string) as node()? {
+declare function render-partial($target as xs:string) as node()* {
 	render-partial($target, ())
 };
 
 declare function render-partial(
 	$target as xs:string, 
 	$transform-items as element()*
-) as node()? {
+) as node()* {
 	render-partial($target, $transform-items, params-map())
 };
 
@@ -100,7 +104,7 @@ declare function render-partial(
 	$target as xs:string, 
 	$transform-items as element()*,
 	$params as map:map?
-) as node()? {
+) as node()* {
 	xdmp:xslt-invoke(
 		fn:concat($target,'.',type(),'.xsl'), 
 		document {$transform-items},
@@ -108,19 +112,20 @@ declare function render-partial(
 			fn:distinct-values((map:keys(.),map:keys(params-map())))[
 				if (fn:empty(map:get($params,.))) then map:put($params,.,map:get(params-map(),.)) else ()
 			],
+			map:put(.,'params-map', element w {.}/*), 
 			fn:true()
 		]
 	)
 };
 
-declare function render-page($target as xs:string) as node()? {
+declare function render-page($target as xs:string) as node()* {
 	render-page($target, ())
 };
 
 declare function render-page(
 	$target as xs:string, 
 	$items as node()*
-) as node()? {
+) as node()* {
 	render-page(
 		$target, 
 		$items, 
@@ -136,16 +141,16 @@ declare function render-page(
 	$type as xs:string,
 	$query-xsl as xs:string,
 	$view-xsl as xs:string
-) as node()? {
+) as node()* {
 
 	xdmp:set-response-content-type(
 		if ($type eq 'html') then 'text/html' else fn:concat('application/',$type)
 	),
-	if (xdmp:uri-is-file($view-xsl))
+	if (view-exists($view-xsl))
 	then 
 		let $body := render-partial(
 						$target, 
-						(if (xdmp:uri-is-file($query-xsl)) 
+						(if (view-exists($query-xsl)) 
 						then 
 							let $query := xdmp:xslt-invoke($query-xsl, $empty-doc, params-map())/*
 							return 
@@ -172,7 +177,7 @@ declare function render-page(
 			else
 			(
 				layout:content-body($body),
-				xdmp:xslt-invoke($layout, $empty-doc, params-map())
+				xdmp:xslt-invoke($layout, $empty-doc, params-map()) 
 			)
 	else if ($target ne '/resource/views/error') 
 	then 
@@ -184,5 +189,21 @@ declare function render-page(
 };
 
 declare function params-map() as map:map? {
-	$params-map[map:put(.,'yield-map',$yield-map),fn:true()]
+	$params-map
+};
+
+declare function params-map($new-params-map as map:map) as empty-sequence() {
+	xdmp:set($params-map, $new-params-map),
+	map:put($params-map, 'yield-map',$yield-map)
+};
+
+declare function view-exists($uri as xs:string) as xs:boolean {
+	let $modules-db as xs:unsignedLong := xdmp:modules-database()
+	return
+		if ($modules-db eq 0)
+		then xdmp:uri-is-file($uri) 
+		else
+			xdmp:invoke("/lib/helpers/view-exists.xqy", (fn:QName("","uri"),$uri), <options xmlns="xdmp:eval">
+				<database>{$modules-db}</database>
+			</options>)
 };

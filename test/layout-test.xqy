@@ -4,6 +4,10 @@ import module namespace assert = "http://github.com/robwhitby/xray/assertions" a
 
 import module namespace layout = "/xFire/layout" at "/lib/layout.xqy";
 
+declare function teardown() {
+	layout:yield-map(map:map())
+};
+
 declare function content-for-area()
 {
   let $article-page := layout:render-page('/test/views/articles/article/index',
@@ -24,6 +28,28 @@ declare function content-for-body()
 							</article>
 						)
   return assert:equal(xs:string($article-page/html/body/div), "My Body Text")
+};
+
+declare function content-exists-for-true()
+{
+  let $article-page := layout:render-page('/test/views/articles/article/index-right-sash',
+							<article>
+							<title/>
+							<body>My Body Text</body>
+							</article>
+						)
+  return assert:equal(layout:content-exists-for('right-sash'),fn:true())
+};
+
+declare function content-exists-for-false()
+{
+  let $article-page := layout:render-page('/test/views/articles/article/index',
+							<article>
+							<title/>
+							<body>My Body Text</body>
+							</article>
+						)
+  return assert:equal(layout:content-exists-for('right-sash'),fn:false())
 };
 
 declare function no-layout()

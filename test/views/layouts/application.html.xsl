@@ -6,6 +6,7 @@
 			exclude-result-prefixes="xs xdmp layout"
 			extension-element-prefixes="xdmp">
 	<xsl:include href="/lib/xview_transform.xsl"/>
+	<xsl:output method="html"/>
 	<xsl:template match="/">
 		<xsl:call-template name="xfire">
 			<xsl:with-param name="content">
@@ -17,6 +18,11 @@
 					</head>
 					<body>
 						<layout:yield />
+						<layout:content-exists-for area="right-sash">
+							<div class="right-sash">
+								<layout:yield area="right-sash"/>
+							</div>
+						</layout:content-exists-for>
 					</body>
 				</html>
 			</xsl:with-param>
