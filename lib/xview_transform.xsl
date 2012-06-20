@@ -16,16 +16,16 @@
 	<xsl:param name="params-map" />
 	<xsl:template name="xfire">
 		<xsl:param name="content"/>
-		<xsl:value-of select="layout:yield-map($yield-map)" />
-		<xsl:value-of select="layout:params-map(map:map($params-map))" />
-		<xsl:value-of select="$content//layout:content-for/(layout:content-for(string(./@area), ./node()))" />
+		<xsl:sequence as="empty-sequence()" select="layout:yield-map($yield-map)" />
+		<xsl:sequence as="empty-sequence()" select="layout:params-map(map:map($params-map))" />
+		<xsl:sequence as="empty-sequence()" select="$content//layout:content-for/(layout:content-for(string(./@area), ./node()))" />
 		<xsl:apply-templates select='$content/node()' mode="xfire" />
 	</xsl:template>
 	<xsl:template match="layout:render-partial" mode="xfire" >
 		<xsl:copy-of select="layout:render-partial(string(./@path), ./element())" />
 	</xsl:template>
 	<xsl:template match="layout:layout" mode="xfire" >
-		<xsl:value-of select="layout:layout(string(./@path))" />
+		<xsl:sequence as="empty-sequence()" select="layout:layout(string(./@path))" />
 		<xsl:apply-templates mode="xfire"  />
 	</xsl:template>
 	<xsl:template match="layout:content-for" mode="xfire" >
